@@ -189,7 +189,7 @@ client.on('message', (message) =>
             if(!game || !game.game || game.game.name !== "League of Legends" || !game.game.assets) return globals.sendEmbed(botChannel, "**Not feeding**", globals.colors.red, "**" + user.user.username + "** is not playing **League of Legends**!", "Requested by: " + message.member.user.username)
             let gameType = game.game.details;
             let gameChamp = game.game.assets.largeText;
-            if(gameChamp === "Yasuo")
+            if(gameChamp === "Kayn")
             {
                 let msg = new Discord.RichEmbed()
                 .setTitle("**FEED ALERT! FEED ALERT!**")
