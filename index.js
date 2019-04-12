@@ -1,42 +1,39 @@
 //Discord Bot by Leon
 const Discord = require('discord.js');
 const fs = require("fs");
-const client = new Discord.Client();
-client.login('NTY1ODY3MzM3NzIzNjc0NjM1.XK8spw.Ga7qdmtASq6bsWd6617TY583Mzw');
-let botChannel;
-let welcomeChannel;
-let globals = require("./config.js");
+const bot = new Discord.Client(); //Creates a new discord bot instance
 
-client.on('ready', () => 
+let botChannel, infoChannel;
+let globals = require("./config.js"); //Import our config data and our functions
+
+bot.on('ready', () => //Called when the discord bot connects to the server
 {   
     console.log("The bot successfully started.");
-    botChannel = client.channels.get("565870599793016859");
-    welcomeChannel = client.channels.get("565969775063203840");
-    client.user.setActivity(globals.botGame);
-    //globals.sendEmbed(botChannel, "Bot connected", globals.colors.green, "The bot successfully connected to the server!");
+    botChannel = bot.channels.get(globals.channels.botChannel); //Get the bot channel for later use
+    infoChannel = bot.channels.get(globals.channels.infoChannel); //Get the info channel for later use
+    bot.user.setActivity(globals.botGame); //Set the "game" the bot is playing
+    //globals.sendEmbed(botChannel, "Bot connected", globals.colors.green, "The bot successfully connected to the server!"); //Send a message to the bot channel that the bot has connected
 });
 
-client.on('message', (message) => 
+bot.on('message', (message) => //Called when a message is send to any channel
 {
-    if(message.channel !== botChannel) return;
-    if(message.author.bot) return;
-    if(message.content[0] !== globals.commandPrefix) return;
-    let command = message.content.substr(1).split(" ")[0];
-    let params = message.content.split(" ");
-    params.shift();
-    if(!globals.cmdExists(command))
+    if(message.channel !== botChannel) return; //The message was not send in the bot channel, ignore it
+    if(message.author.bot) return; //The message author is a bot, ignore it
+    if(message.content[0] !== globals.commandPrefix) return; //The message does not contain our command prefix, ignore it
+    let command = message.content.substr(1).split(" ")[0]; //Get the command that was given in the message
+    let params = message.content.split(" "); //Get the parameters given in the message
+    params.shift(); //Remove the first element of the array, which is the command itself
+    message.delete(); //Delete the message and respond later
+    if(!globals.cmdExists(command)) //Check if the command exists
     {
-        message.delete();
         globals.sendEmbed(botChannel, "**Command doesn't exist**", globals.colors.red, "The command **" + command + "** does not exist.", "Requested by: " + message.member.user.username);
         return;
     }
-    if(!globals.checkPerms(message.member, command))
+    if(!globals.checkPerms(message.member, command)) //Check if the user has permissions to use the command
     {
-        message.delete();
         globals.sendEmbed(botChannel, "**No permissions**", globals.colors.red, "You do not have the permissions for this command.", "Requested by: " + message.member.user.username);
         return;
     }
-    message.delete();
     switch(command)
     {
         case "help":
@@ -152,7 +149,7 @@ client.on('message', (message) =>
             .setDescription("**" + user.user.username + "** was warned!\nCurrent Warns: **" + data.users[user.user.id].warns + "/3**\nWarned by: **" + message.member.user.username + "**\nReason: **" + reason.join(" ") + "**")
             .setFooter("Issued on: " + globals.timeConverter(message.createdTimestamp));
             botChannel.send(msg);
-            if(data.users[user.user.id].warns === 3)
+            if(data.users[user.user.id].warns === 3) //The user has 3 warns, automatically kick them from the discord server
             {
                 user.kick("Reached warning treshold");
                 msg = new Discord.RichEmbed()
@@ -189,7 +186,7 @@ client.on('message', (message) =>
             if(!game || !game.game || game.game.name !== "League of Legends" || !game.game.assets) return globals.sendEmbed(botChannel, "**Not feeding**", globals.colors.red, "**" + user.user.username + "** is not playing **League of Legends**!", "Requested by: " + message.member.user.username)
             let gameType = game.game.details;
             let gameChamp = game.game.assets.largeText;
-            if(gameChamp === "Kayn")
+            if(gameChamp === "Yasuo") //The user is playing League of Legends as Yasuo, send a feed alert
             {
                 let msg = new Discord.RichEmbed()
                 .setTitle("**FEED ALERT! FEED ALERT!**")
@@ -199,7 +196,7 @@ client.on('message', (message) =>
                 .setFooter("Requested by: " + message.member.user.username);
                 botChannel.send(msg);
             }
-            else
+            else //The user is playing League of Legends, but not Yasuo, send no feed alert
             {
                 let msg = new Discord.RichEmbed()
                 .setTitle("**No feed alert**")
@@ -214,22 +211,24 @@ client.on('message', (message) =>
     }
 });
 
-client.on('guildMemberAdd', (member) => 
+bot.on('guildMemberAdd', (member) => //Called when a user has joined the discord server
 {
-    globals.sendEmbed(welcomeChannel, "**A new user joined**", globals.colors.green, "**" + member.user.username + "** just joined the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
+    globals.sendEmbed(infoChannel, "**A new user joined**", globals.colors.green, "**" + member.user.username + "** just joined the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
     let data = fs.readFileSync(__dirname + "/data.json");
     data = JSON.parse(data);
-    if(!data.users.hasOwnProperty(member.id))
+    if(!data.users.hasOwnProperty(member.id)) //If the user has no data saved, add them to our database
     {
         data.users[member.id] = {
             "warns": 0,
             "joinedAt": member.joinedTimestamp
         }
     }
-    fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {});
+    fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {}); //Save the data to our database
 });
 
-client.on('guildMemberRemove', (member) => 
+bot.on('guildMemberRemove', (member) => //Called when a user has left the discord server
 {
-    globals.sendEmbed(welcomeChannel, "**A user has left**", globals.colors.red, "**" + member.user.username + "** has left the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
+    globals.sendEmbed(infoChannel, "**A user has left**", globals.colors.red, "**" + member.user.username + "** has left the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
 });
+
+bot.login(globals.botToken); //Connects the bot to the discord server

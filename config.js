@@ -1,10 +1,23 @@
-//Variables for Discordbot
-const {RichEmbed} = require("discord.js");
+//Config for Discordbot
+const {RichEmbed} = require("discord.js"); 
 
 module.exports = 
 {
-    commandPrefix: ".",
-    botGame: ".help for a list of commands",
+    botToken: "NTY2MTc2NTE1MDI5NDY3MTQ3.XLBLEg.e6ZuuScD_YmWV6iVIjldpP3decM", //API token for the bot (Create one here: https://discordapp.com/developers/applications/)
+    commandPrefix: ".", //Prefix for commands
+    botGame: ".help for a list of commands", //The "game" the bot is playing
+
+    roles:
+    {
+        adminRole: "214024301425197056", //Administrator role (RoleID)
+        modRole: "363354882847014913" //Moderator role (RoleID)
+    },
+
+    channels:
+    {
+        botChannel: "565870599793016859", //Channel for bot commands (ChannelID)
+        infoChannel: "565969775063203840" //Channel for bot informations (ChannelID)
+    },
 
     colors: 
     {
@@ -12,14 +25,8 @@ module.exports =
         red: "RED",
         blue: "BLUE"
     },
-
-    roles:
-    {
-        adminRole: "214024301425197056",
-        modRole: "363354882847014913"
-    },
     
-    sendEmbed: function(channel, title, color, text, footer) 
+    sendEmbed: function(channel, title, color, text, footer) //Function for easy embedded messages
     {
         let msg = new RichEmbed()
         .setTitle(title)
@@ -28,8 +35,8 @@ module.exports =
         if(footer) msg.setFooter(footer);
         channel.send(msg);
     },
-
-    checkPerms: function(user, command)
+ 
+    checkPerms: function(user, command) //Checks if a user has permissions for the command
     {
         let hasPerms = false;
         let cmdExists = false;
@@ -59,13 +66,13 @@ module.exports =
                 break;
             }
         }
-        if(cmdExists) return hasPerms;
-        else return true;
+        if(cmdExists) return hasPerms; //If the commands has custom permissions, return the permissions
+        else return true; //If the command has no custom permissions, everyone has permissions
     },
 
     cmdExists: function(command)
     {
-        let commands = [
+        let commands = [  //Add new commands into this array!
             "help",
             "cleanup",
             "poke",
@@ -80,7 +87,7 @@ module.exports =
         else return true;
     },
 
-    timeConverter: function(UNIX_timestamp)
+    timeConverter: function(UNIX_timestamp) //Converts Timestamp to a readable date
     {
         var a = new Date(UNIX_timestamp);
         var year = a.getFullYear();
