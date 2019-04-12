@@ -3,20 +3,20 @@ const {RichEmbed} = require("discord.js");
 
 module.exports = 
 {
-    botToken: "NTY2MTc2NTE1MDI5NDY3MTQ3.XLBLEg.e6ZuuScD_YmWV6iVIjldpP3decM", //API token for the bot (Create one here: https://discordapp.com/developers/applications/)
+    botToken: "", //API token for the bot (Create one here: https://discordapp.com/developers/applications/)
     commandPrefix: ".", //Prefix for commands
     botGame: ".help for a list of commands", //The "game" the bot is playing
 
     roles:
     {
-        adminRole: "214024301425197056", //Administrator role (RoleID)
-        modRole: "363354882847014913" //Moderator role (RoleID)
+        adminRole: "", //Administrator role (RoleID)
+        modRole: "" //Moderator role (RoleID)
     },
 
     channels:
     {
-        botChannel: "565870599793016859", //Channel for bot commands (ChannelID)
-        infoChannel: "565969775063203840" //Channel for bot informations (ChannelID)
+        botChannel: "", //Channel for bot commands (ChannelID)
+        infoChannel: "" //Channel for bot informations (ChannelID)
     },
 
     colors: 
