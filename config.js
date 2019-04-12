@@ -65,6 +65,20 @@ module.exports =
                 else if(user.roles.has(mod)) hasPerms = true;
                 break;
             }
+            case "kick":
+            {
+                cmdExists = true;
+                if(user.roles.has(admin)) hasPerms = true;
+                else if(user.roles.has(mod)) hasPerms = true;
+                break;
+            }
+            case "ban":
+            {
+                cmdExists = true;
+                if(user.roles.has(admin)) hasPerms = true;
+                else if(user.roles.has(mod)) hasPerms = true;
+                break;
+            }
         }
         if(cmdExists) return hasPerms; //If the commands has custom permissions, return the permissions
         else return true; //If the command has no custom permissions, everyone has permissions
@@ -81,7 +95,9 @@ module.exports =
             "userinfo",
             "warn",
             "unwarn",
-            "feed"
+            "feed",
+            "kick",
+            "ban"
         ];
         if(commands.indexOf(command) === -1) return false;
         else return true;
@@ -97,5 +113,12 @@ module.exports =
         var min = a.getMinutes() < 10 ? '0' + a.getMinutes() : a.getMinutes();
         var time = date + '.' + month + '.' + year + ' ' + hour + ':' + min;
         return time;
+    },
+
+    sendError: function(error)
+    {
+        console.log("******DISCORD BOT ERROR******");
+        console.log(error);
+        console.log("******DISCORD BOT ERROR******");
     }
 }
