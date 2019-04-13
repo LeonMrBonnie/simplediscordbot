@@ -280,7 +280,7 @@ bot.on('guildMemberRemove', (member) => //Called when a user has left the discor
 });
 */
 
-bot.login(globals.botToken) //Connects the bot to the discord server
+bot.login(process.env.TOKEN) //Connects the bot to the discord server
 .catch((err) => 
 {
     globals.sendError("The botToken is not correct!"); //Throw an error if the botToken is not correct
