@@ -3,7 +3,7 @@ const {RichEmbed} = require("discord.js");
 
 module.exports = 
 {
-    botToken: "", //API token for the bot (Create one here: https://discordapp.com/developers/applications/)
+    botToken: "NTY2MTc2NTE1MDI5NDY3MTQ3.XLGvew.gXf1taPSKpWzN9BonFwl4wwS4js", //API token for the bot (Create one here: https://discordapp.com/developers/applications/)
     commandPrefix: ".", //Prefix for commands
     botGame: ".help for a list of commands", //The "game" the bot is playing
 
