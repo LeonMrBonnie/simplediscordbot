@@ -43,9 +43,9 @@ bot.on('message', (message) => //Called when a message is send to any channel
             let msg = new Discord.RichEmbed()
             .setTitle("**Command help:**")
             .setColor(globals.colors.blue)
-            .addField("Command", "help\ncleanup\npoke\nadmins\ndeveloper\nuserinfo\nwarn\nunwarn\nfeed\nkick", true)
-            .addField("Description", "Displays the help\nCleans up the channel\nPokes the bot\nShows all staff\nShows the developer\nShows a user's info\nWarns a user\nRemoves a users warn\nChecks if someone feeds\nKicks a user", true)
-            .addField("Permissions", "Everyone\nAdmins, Mods\nEveryone\nEveryone\nEveryone\nEveryone\nAdmins, Mods\nAdmins, Mods\nEveryone\nAdmins, Mods", true)
+            .addField("Command", "help\ncleanup\npoke\nadmins\ndeveloper\nuserinfo\nwarn\nunwarn\nfeed\nkick\nban", true)
+            .addField("Description", "Displays the help\nCleans up the channel\nPokes the bot\nShows all staff\nShows the developer\nShows a user's info\nWarns a user\nRemoves a users warn\nChecks if someone feeds\nKicks a user\nBans a user", true)
+            .addField("Permissions", "Everyone\nAdmins, Mods\nEveryone\nEveryone\nEveryone\nEveryone\nAdmins, Mods\nAdmins, Mods\nEveryone\nAdmins, Mods\nAdmins, Mods", true)
             .setFooter("Requested by: " + message.member.user.username);
             botChannel.send(msg);
             break;
@@ -127,11 +127,14 @@ bot.on('message', (message) => //Called when a message is send to any channel
             if(!message.mentions.members.first()) return  globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to see the info about!", "Requested by: " + message.member.user.username);
             let data = fs.readFileSync(__dirname + "/data.json");
             data = JSON.parse(data);
+            let role = "User";
+            if(user.roles.has(globals.roles.adminRole)) role = "Administrator";
+            else if(user.roles.has(globals.roles.modRole)) role = "Moderator";
             let msg = new Discord.RichEmbed()
             .setTitle("**" + user.user.username +"**")
             .setColor(globals.colors.blue)
             .setThumbnail(user.user.avatarURL)
-            .setDescription("ID: **" + user.user.id + "**\nWarns: **" + data.users[user.user.id].warns + "/3**\nJoined at: **" + globals.timeConverter(data.users[user.user.id].joinedAt) + "**\n")
+            .setDescription("ID: **" + user.user.id + "**\nRole: **" + role + "**\nWarns: **" + data.users[user.user.id].warns + "/3**\nJoined at: **" + globals.timeConverter(data.users[user.user.id].joinedAt) + "**\n")
             .setFooter("Requested by: " + message.member.user.username);
             botChannel.send(msg);
             break;
@@ -139,7 +142,7 @@ bot.on('message', (message) => //Called when a message is send to any channel
         case "warn":
         {
             let user = message.mentions.members.first();
-            let reason = params.slice(1);
+            let reason = params.slice(1).join(" ");
             if(!user || !reason) return globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to warn and give a reason!", "Requested by: " + message.member.user.username);
             let data = fs.readFileSync(__dirname + "/data.json");
             data = JSON.parse(data);
@@ -148,7 +151,7 @@ bot.on('message', (message) => //Called when a message is send to any channel
             let msg = new Discord.RichEmbed()
             .setTitle("**User warned**")
             .setColor(globals.colors.red)
-            .setDescription("**" + user.user.username + "** was warned!\nCurrent Warns: **" + data.users[user.user.id].warns + "/3**\nWarned by: **" + message.member.user.username + "**\nReason: **" + reason.join(" ") + "**")
+            .setDescription("**" + user.user.username + "** was warned!\nCurrent Warns: **" + data.users[user.user.id].warns + "/3**\nWarned by: **" + message.member.user.username + "**\nReason: **" + reason + "**")
             .setFooter("Issued on: " + globals.timeConverter(message.createdTimestamp));
             infoChannel.send(msg);
             if(data.users[user.user.id].warns === 3) //The user has 3 warns, automatically kick them from the discord server
@@ -215,34 +218,40 @@ bot.on('message', (message) => //Called when a message is send to any channel
         case "kick":
         {
             let user = message.mentions.members.first();
-            let reason = params.slice(1);
+            let reason = params.slice(1).join(" ");
             if(!user || !reason) return globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to kick and give a reason!", "Requested by: " + message.member.user.username);
-            if(user.roles.has(globals.adminRole) || !message.member.roles.has(globals.adminRole) && user.roles.has(globals.modRole)) return globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot kick this user!", "Requested by: " + message.member.user.username); //Admins cannot be kicked and mods cannot kick mods
+            if(user.roles.has(globals.roles.adminRole) || !message.member.roles.has(globals.roles.adminRole) && user.roles.has(globals.roles.modRole)) return globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot kick this user!", "Requested by: " + message.member.user.username); //Admins cannot be kicked and mods cannot kick mods
             user.kick(reason)
             .then(() => {
                 msg = new Discord.RichEmbed()
                 .setTitle("**User kicked**")
                 .setColor(globals.colors.red)
-                .setDescription("**" + user.user.username + "** was kicked!\Kicked by: **" + message.member.user.username + "**\nReason: **" + reason + "**")
+                .setDescription("**" + user.user.username + "** was kicked!\nKicked by: **" + message.member.user.username + "**\nReason: **" + reason + "**")
                 .setFooter("Issued on: " + globals.timeConverter(message.createdTimestamp));
                 infoChannel.send(msg);
+            })
+            .catch((err) => {
+                if(err.message === "Missing Permissions") globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot kick this user!", "Requested by: " + message.member.user.username);
             });
             break;
         }
         case "ban":
         {
             let user = message.mentions.members.first();
-            let reason = params.slice(1);
+            let reason = params.slice(1).join(" ");
             if(!user || !reason) return globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to ban and give a reason!", "Requested by: " + message.member.user.username);
-            if(user.roles.has(globals.adminRole) || !message.member.roles.has(globals.adminRole) && user.roles.has(globals.modRole)) return globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot ban this user!", "Requested by: " + message.member.user.username); //Admins cannot be banned and mods cannot ban mods
+            if(user.roles.has(globals.roles.adminRole) || !message.member.roles.has(globals.roles.adminRole) && user.roles.has(globals.roles.modRole)) return globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot ban this user!", "Requested by: " + message.member.user.username); //Admins cannot be banned and mods cannot ban mods
             user.ban({days: "7", reason: reason})
             .then(() => {
                 msg = new Discord.RichEmbed()
                 .setTitle("**User banned**")
                 .setColor(globals.colors.red)
-                .setDescription("**" + user.user.username + "** was banned!\banned by: **" + message.member.user.username + "**\nReason: **" + reason + "**")
+                .setDescription("**" + user.user.username + "** was banned!\nbanned by: **" + message.member.user.username + "**\nReason: **" + reason + "**")
                 .setFooter("Issued on: " + globals.timeConverter(message.createdTimestamp));
                 infoChannel.send(msg);
+            })
+            .catch((err) => {
+                if(err.message === "Missing Permissions") globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot ban this user!", "Requested by: " + message.member.user.username);
             });
             break;
         }
@@ -264,10 +273,12 @@ bot.on('guildMemberAdd', (member) => //Called when a user has joined the discord
     fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {}); //Save the data to our database
 });
 
+/*
 bot.on('guildMemberRemove', (member) => //Called when a user has left the discord server
 {
     globals.sendEmbed(infoChannel, "**A user has left**", globals.colors.red, "**" + member.user.username + "** has left the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
 });
+*/
 
 bot.login(globals.botToken) //Connects the bot to the discord server
 .catch((err) => 

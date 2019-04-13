@@ -9,14 +9,14 @@ module.exports =
 
     roles:
     {
-        adminRole: "", //Administrator role (RoleID)
-        modRole: "" //Moderator role (RoleID)
+        adminRole: "214024301425197056", //Administrator role (RoleID)
+        modRole: "363354882847014913" //Moderator role (RoleID)
     },
 
     channels:
     {
-        botChannel: "", //Channel for bot commands (ChannelID)
-        infoChannel: "" //Channel for bot informations (ChannelID)
+        botChannel: "565870599793016859", //Channel for bot commands (ChannelID)
+        infoChannel: "565969775063203840" //Channel for bot informations (ChannelID)
     },
 
     colors: 
@@ -26,7 +26,7 @@ module.exports =
         blue: "BLUE"
     },
     
-    sendEmbed: function(channel, title, color, text, footer) //Function for easy embedded messages
+    sendEmbed: (channel, title, color, text, footer) => //Function for easy embedded messages
     {
         let msg = new RichEmbed()
         .setTitle(title)
@@ -36,7 +36,7 @@ module.exports =
         channel.send(msg);
     },
  
-    checkPerms: function(user, command) //Checks if a user has permissions for the command
+    checkPerms: (user, command) => //Checks if a user has permissions for the command
     {
         let hasPerms = false;
         let cmdExists = false;
@@ -84,7 +84,7 @@ module.exports =
         else return true; //If the command has no custom permissions, everyone has permissions
     },
 
-    cmdExists: function(command)
+    cmdExists: (command) =>
     {
         let commands = [  //Add new commands into this array!
             "help",
@@ -103,7 +103,7 @@ module.exports =
         else return true;
     },
 
-    timeConverter: function(UNIX_timestamp) //Converts Timestamp to a readable date
+    timeConverter: (UNIX_timestamp) => //Converts Timestamp to a readable date
     {
         var a = new Date(UNIX_timestamp);
         var year = a.getFullYear();
@@ -115,7 +115,7 @@ module.exports =
         return time;
     },
 
-    sendError: function(error)
+    sendError: (error) => //Sends an error to the console
     {
         console.log("******DISCORD BOT ERROR******");
         console.log(error);
