@@ -1,0 +1,50 @@
+{
+  "help": {
+    "description": "Displays the help",
+    "allowUser": true
+  },
+  "cleanup": {
+    "description": "Cleans up the channel",
+    "allowUser": false
+  },
+  "poke": {
+    "description": "Pokes the bot",
+    "allowUser": true
+  },
+  "admins": {
+    "description": "Shows a list of staff",
+    "allowUser": true
+  },
+  "developer": {
+    "description": "Shows the developer",
+    "allowUser": true
+  },
+  "userinfo": {
+    "description": "Shows info about a given user",
+    "allowUser": true
+  },
+  "warn": {
+    "description": "Warns a given user",
+    "allowUser": false
+  },
+  "unwarn": {
+    "description": "Unwarns a given user",
+    "allowUser": false
+  },
+  "feed": {
+    "description": "Checks if a user is feeding",
+    "allowUser": true
+  },
+  "kick": {
+    "description": "Kicks a given user",
+    "allowUser": false
+  },
+  "ban": {
+    "description": "Bans a given user",
+    "allowUser": false
+  },
+  "meme": {
+    "description": "Outputs a random meme",
+    "allowUser": true
+  }
+}
