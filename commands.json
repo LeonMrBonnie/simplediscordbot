@@ -46,5 +46,9 @@
   "meme": {
     "description": "Outputs a random meme",
     "allowUser": true
+  },
+  "setusername": {
+    "description": "Sets a users username",
+    "allowUser": false
   }
 }

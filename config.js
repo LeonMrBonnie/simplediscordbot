@@ -7,6 +7,7 @@ module.exports =
 {
     botToken: "NTY2MTc2NTE1MDI5NDY3MTQ3.XLGvew.gXf1taPSKpWzN9BonFwl4wwS4js", //API token for the bot (Create one here: https://discordapp.com/developers/applications/)
     commandPrefix: ".", //Prefix for commands
+    botUsername: "Simple Discordbot", //The bot's username
     botGame: ".help for a list of commands", //The "game" the bot is playing
     antiSpam: 10, //How many seconds a user has to wait to use the next command
 
@@ -25,8 +26,16 @@ module.exports =
         createCmd("kick", "Kicks a user", false);
         createCmd("ban", "Bans a user", false);
         createCmd("meme", "Outputs a random meme", true);
+        createCmd("setusername", "Sets a users username", false);
 
         fs.writeFileSync(__dirname + "/commands.json", JSON.stringify(commands, undefined, 2)); //Save after all the commands have been loaded
+    },
+
+    options:
+    {
+        sendJoinMessage: true,
+        sendLeaveMessage: false,
+        sendConnectMessage: false
     },
 
     roles:

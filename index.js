@@ -15,7 +15,8 @@ bot.on('ready', () => //Called when the discord bot connects to the server
     infoChannel = bot.channels.get(globals.channels.infoChannel); //Get the info channel for later use
     if(infoChannel === undefined) globals.sendError("The infochannel is not correctly set up!"); //The infochannel could not be found, send an error
     bot.user.setActivity(globals.botGame); //Set the "game" the bot is playing
-    //globals.sendEmbed(botChannel, "Bot connected", globals.colors.green, "The bot successfully connected to the server!"); //Send a message to the bot channel that the bot has connected
+    bot.user.setUsername(globals.botUsername); //Set the bot's username
+    if(globals.options.sendConnectMessage === true && infoChannel !== undefined) globals.sendEmbed(infoChannel, "Bot connected", globals.colors.green, "The bot successfully connected to the server!"); //Send a message to the bot channel that the bot has connected
     console.log("The bot successfully started.");
 });
 
@@ -89,7 +90,8 @@ bot.on('message', (message) => //Called when a message is send to any channel
         }
         case "poke":
         {
-            let data = loadJson.sync(__dirname + "/data.json");
+            let data = fs.readFileSync(__dirname + "/data.json");
+            data = JSON.parse(data);
             data["pokes"] = parseInt(data["pokes"]) + 1;
             fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {});
             globals.sendEmbed(botChannel, "**Poke**", globals.colors.green, "Don't poke me!\nI was already poked **" + data["pokes"] + "** times!", "Requested by: " + message.member.user.username);
@@ -138,7 +140,8 @@ bot.on('message', (message) => //Called when a message is send to any channel
         {
             let user = message.mentions.members.first();
             if(!message.mentions.members.first()) return  globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to see the info about!", "Requested by: " + message.member.user.username);
-            let data = loadJson.sync(__dirname + "/data.json");
+            let data = fs.readFileSync(__dirname + "/data.json");
+            data = JSON.parse(data);
             let role = "User";
             if(user.roles.has(globals.roles.adminRole)) role = "Administrator";
             else if(user.roles.has(globals.roles.modRole)) role = "Moderator";
@@ -156,7 +159,8 @@ bot.on('message', (message) => //Called when a message is send to any channel
             let user = message.mentions.members.first();
             let reason = params.slice(1).join(" ");
             if(!user || !reason) return globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to warn and give a reason!", "Requested by: " + message.member.user.username);
-            let data = loadJson.sync(__dirname + "/data.json");
+            let data = fs.readFileSync(__dirname + "/data.json");
+            data = JSON.parse(data);
             data.users[user.user.id].warns++;
             fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {});
             let msg = new Discord.RichEmbed()
@@ -183,7 +187,8 @@ bot.on('message', (message) => //Called when a message is send to any channel
         {
             let user = message.mentions.members.first();
             if(!user) return globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to unwarn!", "Requested by: " + message.member.user.username);
-            let data = loadJson.sync(__dirname + "/data.json");
+            let data = fs.readFileSync(__dirname + "/data.json");
+            data = JSON.parse(data);
             if(data.users[user.user.id].warns === 0) return globals.sendEmbed(botChannel, "**An error has occured**", globals.colors.red, "The specified user has no warns!", "Requested by: " + message.member.user.username);
             data.users[user.user.id].warns--;
             fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {});
@@ -277,13 +282,35 @@ bot.on('message', (message) => //Called when a message is send to any channel
             botChannel.send(msg);
             break;
         }
+        case "setusername":
+        {
+            let user = message.mentions.members.first();
+            let newUsername = params.slice(1).join(" ");
+            if(!user || !newUsername) return globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to set the username of and give a new username!", "Requested by: " + message.member.user.username);
+            if(newUsername === user.displayName) return globals.sendEmbed(botChannel, "**New name can't be old name**", globals.colors.red, "You can't set the username to the name the user currently has!", "Requested by: " + message.member.user.username);
+            if(newUsername.length >= 32) return globals.sendEmbed(botChannel, "**Username too long**", globals.colors.red, "You can't set a username longer than 32 characters!", "Requested by: " + message.member.user.username);
+            let oldName = user.displayName;
+            user.setNickname(newUsername)
+            .then(() => {
+                let msg = new Discord.RichEmbed()
+                .setTitle("**Username changed**")
+                .setColor(globals.colors.blue)
+                .setDescription("**" + user.user.username + "**'s username is now **" + newUsername + "**!\nSet by: **" + message.member.user.username + "**\n")
+                .setFooter("Issued on: " + globals.timeConverter(message.createdTimestamp));
+                infoChannel.send(msg);
+            })
+            .catch((err) => {
+                if(err.message === "Missing Permissions") globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot set this user's username!", "Requested by: " + message.member.user.username);
+            });
+            break;
+        }
     }
     spamProtection[message.member.id] = Date.now() + globals.antiSpam * 1000;
 });
 
 bot.on('guildMemberAdd', (member) => //Called when a user has joined the discord server
 {
-    globals.sendEmbed(infoChannel, "**A new user joined**", globals.colors.green, "**" + member.user.username + "** just joined the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
+    if(globals.options.sendJoinMessage === true) globals.sendEmbed(infoChannel, "**A new user joined**", globals.colors.green, "**" + member.user.username + "** just joined the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
     let data = fs.readFileSync(__dirname + "/data.json");
     data = JSON.parse(data);
     if(!data.users.hasOwnProperty(member.id)) //If the user has no data saved, add them to our database
@@ -296,12 +323,13 @@ bot.on('guildMemberAdd', (member) => //Called when a user has joined the discord
     fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {}); //Save the data to our database
 });
 
-/*
-bot.on('guildMemberRemove', (member) => //Called when a user has left the discord server
+if(globals.options.sendLeaveMessage === true)
 {
-    globals.sendEmbed(infoChannel, "**A user has left**", globals.colors.red, "**" + member.user.username + "** has left the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
-});
-*/
+    bot.on('guildMemberRemove', (member) => //Called when a user has left the discord server
+    {
+        globals.sendEmbed(infoChannel, "**A user has left**", globals.colors.red, "**" + member.user.username + "** has left the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
+    });
+}
 
 bot.login(process.env.BOT_TOKEN || globals.botToken) //Connects the bot to the discord server
 .catch((err) => 
