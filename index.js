@@ -49,7 +49,7 @@ bot.on('message', (message) => //Called when a message is send to any channel
 bot.on('guildMemberAdd', (member) => //Called when a user has joined the discord server
 {
     if(globals.options.sendJoinMessage === true) globals.sendEmbed(infoChannel, "**A new user joined**", globals.colors.green, "**" + member.user.username + "** just joined the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
-    let data = fs.readFileSync(__dirname + "/data.json");
+    let data = fs.readFileSync(__dirname + "/data/data.json");
     data = JSON.parse(data);
     if(!data.users.hasOwnProperty(member.id)) //If the user has no data saved, add them to our database
     {
@@ -58,7 +58,7 @@ bot.on('guildMemberAdd', (member) => //Called when a user has joined the discord
             "joinedAt": member.joinedTimestamp
         }
     }
-    fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {}); //Save the data to our database
+    fs.writeFile(__dirname + "/data/data.json", JSON.stringify(data, undefined, 2), (err) => {}); //Save the data to our database
 });
 
 if(globals.options.sendLeaveMessage === true)
@@ -75,7 +75,7 @@ function handleCommand(message, command, params) {
         case "help":
         {   
             let cmdsString = new String(), descString = new String(), permsString = new String();
-            let cmds = fs.readFileSync(__dirname + "/commands.json");
+            let cmds = fs.readFileSync(__dirname + "/data/commands.json");
             cmds = JSON.parse(cmds);
             for(let cmd in cmds)
             {
@@ -120,10 +120,10 @@ function handleCommand(message, command, params) {
         }
         case "poke":
         {
-            let data = fs.readFileSync(__dirname + "/data.json");
+            let data = fs.readFileSync(__dirname + "/data/data.json");
             data = JSON.parse(data);
             data["pokes"] = parseInt(data["pokes"]) + 1;
-            fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {});
+            fs.writeFile(__dirname + "/data/data.json", JSON.stringify(data, undefined, 2), (err) => {});
             globals.sendEmbed(botChannel, "**Poke**", globals.colors.green, "Don't poke me!\nI was already poked **" + data["pokes"] + "** times!", "Requested by: " + message.member.user.username);
             break;
         }
@@ -170,7 +170,7 @@ function handleCommand(message, command, params) {
         {
             let user = message.mentions.members.first();
             if(!message.mentions.members.first()) return  globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to see the info about!", "Requested by: " + message.member.user.username);
-            let data = fs.readFileSync(__dirname + "/data.json");
+            let data = fs.readFileSync(__dirname + "/data/data.json");
             data = JSON.parse(data);
             let role = "User";
             if(user.roles.has(globals.roles.adminRole)) role = "Administrator";
@@ -189,7 +189,7 @@ function handleCommand(message, command, params) {
             let user = message.mentions.members.first();
             let reason = params.slice(1).join(" ");
             if(!user || !reason) return globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to warn and give a reason!", "Requested by: " + message.member.user.username);
-            let data = fs.readFileSync(__dirname + "/data.json");
+            let data = fs.readFileSync(__dirname + "/data/data.json");
             data = JSON.parse(data);
             data.users[user.user.id].warns++;
             fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {});
@@ -217,7 +217,7 @@ function handleCommand(message, command, params) {
         {
             let user = message.mentions.members.first();
             if(!user) return globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to unwarn!", "Requested by: " + message.member.user.username);
-            let data = fs.readFileSync(__dirname + "/data.json");
+            let data = fs.readFileSync(__dirname + "/data/data.json");
             data = JSON.parse(data);
             if(data.users[user.user.id].warns === 0) return globals.sendEmbed(botChannel, "**An error has occured**", globals.colors.red, "The specified user has no warns!", "Requested by: " + message.member.user.username);
             data.users[user.user.id].warns--;

@@ -1,7 +1,7 @@
 //Config for Discordbot
 const {RichEmbed} = require("discord.js"); 
 const fs = require("fs");
-const commands = require("./commands.json");
+const commands = require("./data/commands.json");
 
 module.exports = 
 {
@@ -58,7 +58,7 @@ module.exports =
         createCmd("playyoutube", "Plays a youtube video", true);
         createCmd("stopyoutube", "Stops the current video", true);
 
-        fs.writeFileSync(__dirname + "/commands.json", JSON.stringify(commands, undefined, 2)); //Save after all the commands have been loaded
+        fs.writeFileSync(__dirname + "/data/commands.json", JSON.stringify(commands, undefined, 2)); //Save after all the commands have been loaded
     },
     
     sendEmbed: (channel, title, color, text, footer) => //Function for easy embedded messages
