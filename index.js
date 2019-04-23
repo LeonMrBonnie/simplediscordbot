@@ -1,9 +1,11 @@
 //Discord Bot by Leon
-const Discord = require('discord.js');
+const Discord = require("discord.js");
 const fs = require("fs");
+const ytdl = require("ytdl-core");
 const bot = new Discord.Client(); //Creates a new discord bot instance
 
 let spamProtection = [];
+let playbackOwner = -1, currentPlayback, playbackChannel;
 let botChannel, infoChannel;
 let globals = require("./config.js"); //Import our config data and our functions
 
@@ -40,6 +42,34 @@ bot.on('message', (message) => //Called when a message is send to any channel
         return;
     }
     if(spamProtection[message.member.id] >= Date.now() && spamProtection[message.member.id]) return; //Do not handle the command, when the user has spam protection
+    handleCommand(message, command, params);
+    spamProtection[message.member.id] = Date.now() + (globals.options.antiSpamTime * 1000);
+});
+
+bot.on('guildMemberAdd', (member) => //Called when a user has joined the discord server
+{
+    if(globals.options.sendJoinMessage === true) globals.sendEmbed(infoChannel, "**A new user joined**", globals.colors.green, "**" + member.user.username + "** just joined the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
+    let data = fs.readFileSync(__dirname + "/data.json");
+    data = JSON.parse(data);
+    if(!data.users.hasOwnProperty(member.id)) //If the user has no data saved, add them to our database
+    {
+        data.users[member.id] = {
+            "warns": 0,
+            "joinedAt": member.joinedTimestamp
+        }
+    }
+    fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {}); //Save the data to our database
+});
+
+if(globals.options.sendLeaveMessage === true)
+{
+    bot.on('guildMemberRemove', (member) => //Called when a user has left the discord server
+    {
+        globals.sendEmbed(infoChannel, "**A user has left**", globals.colors.red, "**" + member.user.username + "** has left the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
+    });
+}
+
+function handleCommand(message, command, params) {
     switch(command) //Add a new case for each command here
     {
         case "help":
@@ -169,7 +199,7 @@ bot.on('message', (message) => //Called when a message is send to any channel
             .setDescription("**" + user.user.username + "** was warned!\nCurrent Warns: **" + data.users[user.user.id].warns + "/3**\nWarned by: **" + message.member.user.username + "**\nReason: **" + reason + "**")
             .setFooter("Issued on: " + globals.timeConverter(message.createdTimestamp));
             infoChannel.send(msg);
-            if(data.users[user.user.id].warns === 3) //The user has 3 warns, automatically kick them from the discord server
+            if(data.users[user.user.id].warns === globals.options.maxAllowedWarns) //The user has X warns, automatically kick them from the discord server
             {
                 user.kick("Reached warning treshold")
                 .then(() => {
@@ -246,7 +276,7 @@ bot.on('message', (message) => //Called when a message is send to any channel
                 infoChannel.send(msg);
             })
             .catch((err) => {
-                if(err.message === "Missing Permissions") globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot kick this user!", "Requested by: " + message.member.user.username);
+                if(err.message === "Missing Permissions") return globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot kick this user!", "Requested by: " + message.member.user.username);
             });
             break;
         }
@@ -256,7 +286,7 @@ bot.on('message', (message) => //Called when a message is send to any channel
             let reason = params.slice(1).join(" ");
             if(!user || !reason) return globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to mention the user you want to ban and give a reason!", "Requested by: " + message.member.user.username);
             if(user.roles.has(globals.roles.adminRole) || !message.member.roles.has(globals.roles.adminRole) && user.roles.has(globals.roles.modRole)) return globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot ban this user!", "Requested by: " + message.member.user.username); //Admins cannot be banned and mods cannot ban mods
-            user.ban({days: "7", reason: reason})
+            user.ban({days: globals.options.banHistoryDeleteTime, reason: reason})
             .then(() => {
                 msg = new Discord.RichEmbed()
                 .setTitle("**User banned**")
@@ -266,7 +296,7 @@ bot.on('message', (message) => //Called when a message is send to any channel
                 infoChannel.send(msg);
             })
             .catch((err) => {
-                if(err.message === "Missing Permissions") globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot ban this user!", "Requested by: " + message.member.user.username);
+                if(err.message === "Missing Permissions") return globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot ban this user!", "Requested by: " + message.member.user.username);
             });
             break;
         }
@@ -300,39 +330,63 @@ bot.on('message', (message) => //Called when a message is send to any channel
                 infoChannel.send(msg);
             })
             .catch((err) => {
-                if(err.message === "Missing Permissions") globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot set this user's username!", "Requested by: " + message.member.user.username);
+                if(err.message === "Missing Permissions") return globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You cannot set this user's username!", "Requested by: " + message.member.user.username);
             });
             break;
         }
-    }
-    spamProtection[message.member.id] = Date.now() + globals.antiSpam * 1000;
-});
-
-bot.on('guildMemberAdd', (member) => //Called when a user has joined the discord server
-{
-    if(globals.options.sendJoinMessage === true) globals.sendEmbed(infoChannel, "**A new user joined**", globals.colors.green, "**" + member.user.username + "** just joined the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
-    let data = fs.readFileSync(__dirname + "/data.json");
-    data = JSON.parse(data);
-    if(!data.users.hasOwnProperty(member.id)) //If the user has no data saved, add them to our database
-    {
-        data.users[member.id] = {
-            "warns": 0,
-            "joinedAt": member.joinedTimestamp
+        case "playyoutube":
+        {
+            let url = params[0];
+            if(playbackOwner !== -1) return globals.sendEmbed(botChannel, "**Already playing**", globals.colors.red, "The bot is already playing a song!\nThe requester can stop the song by using **" + globals.commandPrefix + "stopyoutube**!", "Requested by: " + message.member.user.username);
+            if(!url) return globals.sendEmbed(botChannel, "**Missing parameter**", globals.colors.red, "You have to give the url of the video you want to be played!", "Requested by: " + message.member.user.username);
+            if(!message.member.voiceChannel) return globals.sendEmbed(botChannel, "**You are not in a voice channel**", globals.colors.red, "You have to be in a voice channel to request a song!", "Requested by: " + message.member.user.username);
+            let validate = ytdl.validateURL(url);
+            if(!validate) return globals.sendEmbed(botChannel, "**Incorrect URL**", globals.colors.red, "You have to specify a URL to a valid youtube video!", "Requested by: " + message.member.user.username);
+            playbackChannel = message.member.voiceChannel;
+            let broadcast = bot.createVoiceBroadcast();
+            playbackChannel.join()
+            .then(connection => {
+                const stream = ytdl(url, { filter : 'audioonly' });
+                broadcast.playStream(stream);
+                const dispatcher = connection.playBroadcast(broadcast);
+                playbackOwner = message.member.id;
+                ytdl.getInfo(url, (err, info) => {
+                    if(err) console.log(err);
+                    let msg = new Discord.RichEmbed()
+                    .setTitle("**Playback started**")
+                    .setThumbnail(info.thumbnail.thumbnails[info.thumbnail.thumbnails.length].url)
+                    .setColor(globals.colors.blue)
+                    .setDescription("**" + info.title + "** is now playing in **" + playbackChannel.name + "**!\nRequested by: **" + message.member.user.username + "**\n")
+                    .setFooter("Requested on: " + globals.timeConverter(message.createdTimestamp));
+                    infoChannel.send(msg);
+                });
+            })
+            .catch(err => {
+                if(err.message === "Missing Permissions") return globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "The bot cannot join your voice channel!", "Requested by: " + message.member.user.username);
+            });
+            break;
+        }
+        case "stopyoutube":
+        {
+            if(playbackOwner === -1 || !currentPlayback) return globals.sendEmbed(botChannel, "**Not playing**", globals.colors.red, "The bot is currently not playing a song!\nYou can request a song using **" + globals.commandPrefix + "playyoutube**!", "Requested by: " + message.member.user.username);
+            if(playbackOwner !== message.member.id && !message.member.roles.has(globals.roles.modRole) && !message.member.roles.has(globals.roles.adminRole)) return globals.sendEmbed(botChannel, "**Permission denied**", globals.colors.red, "You are not the requester of the song or staff!", "Requested by: " + message.member.user.username);
+            currentPlayback.end();
+            playbackChannel.leave();
+            currentPlayback = undefined;
+            playbackChannel = undefined;
+            let msg = new Discord.RichEmbed()
+            .setTitle("**Playback ended**")
+            .setColor(globals.colors.blue)
+            .setDescription("**" + url + "** is now not playing anymore in **" + playbackChannel.name + "**!\nRequested by: **" + message.member.user.username + "**\n")
+            .setFooter("Requested on: " + globals.timeConverter(message.createdTimestamp));
+            infoChannel.send(msg);
+            break;
         }
     }
-    fs.writeFile(__dirname + "/data.json", JSON.stringify(data, undefined, 2), (err) => {}); //Save the data to our database
-});
-
-if(globals.options.sendLeaveMessage === true)
-{
-    bot.on('guildMemberRemove', (member) => //Called when a user has left the discord server
-    {
-        globals.sendEmbed(infoChannel, "**A user has left**", globals.colors.red, "**" + member.user.username + "** has left the server!", "Joined on: " + globals.timeConverter(member.joinedTimestamp));
-    });
 }
 
 bot.login(process.env.BOT_TOKEN || globals.botToken) //Connects the bot to the discord server
 .catch((err) => 
 {
-    globals.sendError("The botToken is not correct!"); //Throw an error if the botToken is not correct
+    globals.sendError("The botToken is not correct! The bot will now shutdown."); //Throw an error if the botToken is not correct
 });

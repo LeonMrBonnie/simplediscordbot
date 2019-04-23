@@ -50,5 +50,13 @@
   "setusername": {
     "description": "Sets a users username",
     "allowUser": false
+  },
+  "playyoutube": {
+    "description": "Plays a youtube video",
+    "allowUser": true
+  },
+  "stopyoutube": {
+    "description": "Stops the current video",
+    "allowUser": true
   }
 }

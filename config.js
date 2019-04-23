@@ -9,33 +9,15 @@ module.exports =
     commandPrefix: ".", //Prefix for commands
     botUsername: "Simple Discordbot", //The bot's username
     botGame: ".help for a list of commands", //The "game" the bot is playing
-    antiSpam: 10, //How many seconds a user has to wait to use the next command
-
-    loadCommands: () => //Add your own commands here and handle them in the index.js file
-    {
-        const createCmd = module.exports.createCommand;
-        createCmd("help", "Displays the help", true);
-        createCmd("cleanup", "Cleans up the channel", false);
-        createCmd("poke", "Pokes the bot", true);
-        createCmd("admins", "Shows a list of staff", true);
-        createCmd("developer", "Shows the developer", true);
-        createCmd("userinfo", "Shows info about a user", true);
-        createCmd("warn", "Warns a user", false);
-        createCmd("unwarn", "Unwarns a user", false);
-        createCmd("feed", "Checks if a user is feeding", true);
-        createCmd("kick", "Kicks a user", false);
-        createCmd("ban", "Bans a user", false);
-        createCmd("meme", "Outputs a random meme", true);
-        createCmd("setusername", "Sets a users username", false);
-
-        fs.writeFileSync(__dirname + "/commands.json", JSON.stringify(commands, undefined, 2)); //Save after all the commands have been loaded
-    },
 
     options:
     {
-        sendJoinMessage: true,
-        sendLeaveMessage: false,
-        sendConnectMessage: false
+        sendJoinMessage: true, //Should a info message be sent when a user joins the discord?
+        sendLeaveMessage: false, //Should a info message be sent when a user leaves the discord?
+        sendConnectMessage: false, //Should a info message be sent when the bot connects to the discord server?
+        banHistoryDeleteTime: "7", //Amount of days that the text history of a banned user should be deleted (Keep this as a string!!)
+        maxAllowedWarns: 3, //Max. allowed warns before the user gets kicked from the discord server
+        antiSpamTime: 10 //How many seconds a user has to wait to use the next command
     },
 
     roles:
@@ -55,6 +37,28 @@ module.exports =
         green: "GREEN",
         red: "RED",
         blue: "BLUE"
+    },
+
+    loadCommands: () => //Add your own commands here and handle them in the index.js file
+    {
+        const createCmd = module.exports.createCommand;
+        createCmd("help", "Displays the help", true);
+        createCmd("cleanup", "Cleans up the channel", false);
+        createCmd("poke", "Pokes the bot", true);
+        createCmd("admins", "Shows a list of staff", true);
+        createCmd("developer", "Shows the developer", true);
+        createCmd("userinfo", "Shows info about a user", true);
+        createCmd("warn", "Warns a user", false);
+        createCmd("unwarn", "Unwarns a user", false);
+        createCmd("feed", "Checks if a user is feeding", true);
+        createCmd("kick", "Kicks a user", false);
+        createCmd("ban", "Bans a user", false);
+        createCmd("meme", "Outputs a random meme", true);
+        createCmd("setusername", "Sets a users username", false);
+        createCmd("playyoutube", "Plays a youtube video", true);
+        createCmd("stopyoutube", "Stops the current video", true);
+
+        fs.writeFileSync(__dirname + "/commands.json", JSON.stringify(commands, undefined, 2)); //Save after all the commands have been loaded
     },
     
     sendEmbed: (channel, title, color, text, footer) => //Function for easy embedded messages
@@ -106,7 +110,6 @@ module.exports =
     sendError: (error) => //Sends an error to the console
     {
         console.log("******DISCORD BOT ERROR******");
-        console.log(error);
-        console.log("******DISCORD BOT ERROR******");
+        throw error;
     }
 }
