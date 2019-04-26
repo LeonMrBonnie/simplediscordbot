@@ -5,7 +5,7 @@ const commands = require("./data/commands.json");
 
 module.exports = 
 {
-    botToken: "NTY2MTc2NTE1MDI5NDY3MTQ3.XLGvew.gXf1taPSKpWzN9BonFwl4wwS4js", //API token for the bot (Create one here: https://discordapp.com/developers/applications/)
+    botToken: "", //API token for the bot (Create one here: https://discordapp.com/developers/applications/)
     commandPrefix: ".", //Prefix for commands
     botUsername: "Simple Discordbot", //The bot's username
     botGame: ".help for a list of commands", //The "game" the bot is playing
@@ -22,14 +22,14 @@ module.exports =
 
     roles:
     {
-        adminRole: "214024301425197056", //Administrator role (RoleID)
-        modRole: "363354882847014913" //Moderator role (RoleID)
+        adminRole: "", //Administrator role (RoleID)
+        modRole: "" //Moderator role (RoleID)
     },
 
     channels:
     {
-        botChannel: "565870599793016859", //Channel for bot commands (ChannelID)
-        infoChannel: "565969775063203840" //Channel for bot informations (ChannelID)
+        botChannel: "", //Channel for bot commands (ChannelID)
+        infoChannel: "" //Channel for bot informations (ChannelID)
     },
 
     colors: 
@@ -55,8 +55,8 @@ module.exports =
         createCmd("ban", "Bans a user", false);
         createCmd("meme", "Outputs a random meme", true);
         createCmd("setusername", "Sets a users username", false);
-        createCmd("playyoutube", "Plays a youtube video", true);
-        createCmd("stopyoutube", "Stops the current video", true);
+        /*createCmd("playyoutube", "Plays a youtube video", true);
+        createCmd("stopyoutube", "Stops the current video", true);*/
 
         fs.writeFileSync(__dirname + "/data/commands.json", JSON.stringify(commands, undefined, 2)); //Save after all the commands have been loaded
     },

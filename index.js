@@ -1,11 +1,11 @@
 //Discord Bot by Leon
 const Discord = require("discord.js");
 const fs = require("fs");
-const ytdl = require("ytdl-core");
+//const ytdl = require("ytdl-core");
 const bot = new Discord.Client(); //Creates a new discord bot instance
 
 let spamProtection = [];
-let playbackOwner = -1, currentPlayback, playbackChannel;
+//let playbackOwner = -1, currentPlayback, playbackChannel;
 let botChannel, infoChannel;
 let globals = require("./config.js"); //Import our config data and our functions
 
@@ -69,7 +69,8 @@ if(globals.options.sendLeaveMessage === true)
     });
 }
 
-function handleCommand(message, command, params) {
+function handleCommand(message, command, params) 
+{
     switch(command) //Add a new case for each command here
     {
         case "help":
@@ -105,10 +106,11 @@ function handleCommand(message, command, params) {
             for(let i = 0; i < messageCount; i++) 
             {
                 messagesArr[i].delete()
-                .then(function() {
+                .then(() => 
+                {
                     count = count++;
                 })
-                .catch(function() 
+                .catch(() => 
                 {
                     count = count++;
                 });
@@ -334,6 +336,7 @@ function handleCommand(message, command, params) {
             });
             break;
         }
+        /*
         case "playyoutube":
         {
             let url = params[0];
@@ -382,11 +385,12 @@ function handleCommand(message, command, params) {
             infoChannel.send(msg);
             break;
         }
+        */
     }
 }
 
 bot.login(process.env.BOT_TOKEN || globals.botToken) //Connects the bot to the discord server
-.catch((err) => 
+.catch(() => 
 {
     globals.sendError("The botToken is not correct! The bot will now shutdown."); //Throw an error if the botToken is not correct
 });
