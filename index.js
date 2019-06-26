@@ -11,6 +11,7 @@ let globals = require("./config.js"); //Import our config data and our functions
 
 bot.on('ready', () => //Called when the discord bot connects to the server
 {   
+    globals.loadUsers(Discord, bot);
     globals.loadCommands(); //Load all the commands using the commandhandler
     botChannel = bot.channels.get(globals.channels.botChannel); //Get the bot channel for later use
     if(botChannel === undefined) globals.sendError("The botchannel is not correctly set up!"); //The botchannel could not be found, send an error
