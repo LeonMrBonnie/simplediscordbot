@@ -38,6 +38,25 @@ module.exports =
         red: "RED",
         blue: "BLUE"
     },
+    
+    loadUsers: (Discord, bot) =>
+    {
+        let data = fs.readFileSync(__dirname + "/data/data.json");
+        data = JSON.parse(data);
+        var Count;
+        for(Count in bot.users.array()){
+            var User = bot.users.array()[Count];
+            if(!data.users.hasOwnProperty(User.id)) //If the user has no data saved, add them to our database
+            {
+                data.users[User.id] = {
+                    "warns": 0,
+                    "joinedAt": 0
+                }
+            }
+
+        }
+        fs.writeFile(__dirname + "/data/data.json", JSON.stringify(data, undefined, 2), (err) => {}); //Save the data to our database
+    },
 
     loadCommands: () => //Add your own commands here and handle them in the index.js file
     {
